@@ -1,0 +1,8 @@
+{
+  "surfing_epoch": 4,
+  "alpha": 0.95,
+  "hidden_dims": [60,50,40],
+  "output_dim": 32,
+  "lr": 8e-4,
+  "epochs": 1000
+}
