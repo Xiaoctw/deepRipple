@@ -13,14 +13,26 @@ def random_surfing(adj: np.ndarray, epochs: int, alpha: float) -> np.ndarray:
     :param alpha: random surf 过程继续的概率
     :return: numpy数组
     """
-    N = adj.shape[0]
-    # 在此进行归一化
-    P0, P = np.eye(N), np.eye(N)
-    mat = np.zeros((N, N))
+    # N = adj.shape[0]
+    # # 在此进行归一化
+    # P0, P = np.eye(N), np.eye(N)
+    # mat = np.zeros((N, N))
+    # for _ in range(epochs):
+    #     P = alpha * adj.dot(P) + (1 - alpha) * P0
+    #     mat = mat + P
+    # return mat
+    A = normalize_np(adj)
+    P = adj.copy()
     for _ in range(epochs):
-        P = alpha * P.dot(adj) + (1 - alpha) * P0
-        mat = mat + P
-    return mat
+        P = alpha * A.dot(adj) + (1 - alpha) * adj
+    #对结果进行正则化
+    # mean_val = np.mean(P, axis=0)
+    # std_val = np.std(P, axis=0)
+    # P = (P - mean_val) / std_val
+    min_val=np.min(P,axis=0)
+    max_val=np.max(P,axis=0)
+    P = (P - min_val) / max_val
+    return P
 
 
 def PPMI_matrix(mat: np.ndarray) -> np.ndarray:
@@ -263,14 +275,14 @@ class StackAutoEncoder(nn.Module):
         self.zero_ratio = zero_ratio
         self.GPU = GPU
         setattr(self, 'autoEncoder0', Layer(input_dim, hidden_dims[0], zero_ratio=zero_ratio, GPU=GPU,
-                                                       activation='relu'))
+                                            activation='relu'))
         for i in range(1, len(hidden_dims)):
             setattr(self, 'autoEncoder{}'.format(i),
                     Layer(hidden_dims[i - 1], hidden_dims[i], zero_ratio=zero_ratio, GPU=GPU,
-                                     activation='relu'))
+                          activation='relu'))
         setattr(self, 'autoEncoder{}'.format(self.num_layers - 1),
                 Layer(hidden_dims[-1], output_dim, zero_ratio=zero_ratio, GPU=GPU,
-                                 activation='relu'))
+                      activation='relu'))
         self.init_weights()
 
     def emb(self, x):
