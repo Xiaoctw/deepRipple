@@ -17,7 +17,7 @@ parser.add_argument('--epochs1', type=list, default=600,
                     help='Number of epochs to train.')
 parser.add_argument('--zero_ratio', type=float, default=0.4, help='The probability of random 0.')
 parser.add_argument('--batch_size', type=int, default=64)
-parser.add_argument('--dataset', type=str, default='barbell')
+parser.add_argument('--dataset', type=str, default='europe-airports')
 parser.add_argument('--print_every', type=int, default=40)
 parser.add_argument('--w', type=float, default=0.2)
 parser.add_argument('--ratio', type=int, default=5)
@@ -40,15 +40,18 @@ model = StackAutoEncoder(input_dim=N, hidden_dims=params['hidden_dims'], output_
                          zero_ratio=args.zero_ratio)
 model_path = Path(__file__).parent / 'models' / (
         'AutoEncoder_' + "w:{}_".format(args.w) + "ratio:{}_".format(args.ratio) + args.dataset + '.pkl')
+save_path = Path(__file__).parent / 'embedding_results' / ('{}_outVec.txt'.format(args.dataset))
+
 
 # 训练得到模型，该模型为堆叠的自编码器模型，自编码器的输入为
 if __name__ == '__main__':
     if GPU:
         model = model.cuda()
+        M=M.cuda()
     print('节点数量:{}'.format(N))
     print(surfing_mat.shape)
     # print(ripple_mat.shape)
-    train_autoEncoder(model, M, b=4, epochs1=args.epochs1,
+    train_autoEncoder(model, M, b=1, epochs1=args.epochs1,
                       epochs2=epochs, lr=lr, batch_size=args.batch_size, print_every=args.print_every,
                       GPU=GPU)
     model = model.cpu()
@@ -59,3 +62,7 @@ if __name__ == '__main__':
     print(M[0][:15])
     print('out:')
     print(out[0][:15])
+    model.eval()
+    embs = model.emb(M)
+    embs = embs.cpu().detach().numpy()
+    np.savetxt(save_path, embs)

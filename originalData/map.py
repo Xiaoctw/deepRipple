@@ -3,9 +3,10 @@ from pathlib import Path
 
 dic1 = {}
 
-dataset = 'usa-airports'
+dataset = 'barbell'
+# 这里使用的数据集为'usa-airports','brazil-airports','europe-airports'
 
-file_path = Path(__file__).parent.parent/'rawData' / (dataset + '.edgelist')
+file_path = Path(__file__).parent.parent / 'rawData' / (dataset + '.edgelist')
 write_path = Path(__file__).parent / (dataset + '.edgelist')
 map_path = Path(__file__).parent / (dataset + '.txt')
 

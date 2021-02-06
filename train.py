@@ -70,12 +70,12 @@ def train(model: nn.Module, mat1, mat2, b, epochs, lr, batch_size, print_every, 
     return model
 
 
-def train_autoEncoder(model: nn.Module, M, b, epochs1,epochs2, lr, batch_size, print_every, GPU=False):
+def train_autoEncoder(model: nn.Module, M, b, epochs1, epochs2, lr, batch_size, print_every, GPU=False):
     for param in model.parameters():
         param.requires_grad = False  # 首先冻结所有的层
     num_layers = model.num_layers
     for i in range(num_layers):
-        train_layer(model, i, M, lr, epochs1, print_every=print_every,GPU=GPU)
+        train_layer(model, i, M, lr, epochs1, print_every=print_every, GPU=GPU)
     for param in model.parameters():
         param.requires_grad = True  # 恢复计算各个层的参数梯度
     # 对模型整体进行微调
@@ -90,6 +90,8 @@ def train_autoEncoder(model: nn.Module, M, b, epochs1,epochs2, lr, batch_size, p
             B = torch.zeros(batch_x.shape).fill_(b)
             ones_mat = torch.ones(batch_x.shape)
             B = torch.where(batch_x > 0, B, ones_mat)
+            if GPU:
+                B=B.cuda()
             batch_loss = (B.mul(torch.pow(batch_x - output, 2))).sum() + (
                 B.mul(torch.abs(batch_x - output))).sum()
             optimizer.zero_grad()
@@ -101,7 +103,7 @@ def train_autoEncoder(model: nn.Module, M, b, epochs1,epochs2, lr, batch_size, p
     return model
 
 
-def train_layer(model, i, X, lr=3e-5, epochs=200, print_every=20, batch_size=128,GPU=False):
+def train_layer(model, i, X, lr=3e-5, epochs=200, print_every=20, batch_size=128, GPU=False):
     for param in getattr(model, 'autoEncoder{}'.format(i)).parameters():
         param.requires_grad = True
     for j in range(i):
@@ -128,3 +130,35 @@ def train_layer(model, i, X, lr=3e-5, epochs=200, print_every=20, batch_size=128
             pre_time = tem_time
     for param in getattr(model, 'autoEncoder{}'.format(i)).parameters():
         param.requires_grad = False
+
+
+def trainGCN(model: nn.Module, X, Y, idx_train, idx_val, epochs, lr, print_every, GPU=False):
+    model.train()
+    if GPU:
+        model=model.cuda()
+        X=X.cuda()
+        Y=Y.cuda()
+    optimizer = optim.Adam(model.parameters(), lr=lr, )
+    optimizer.zero_grad()
+    pre_time = 0
+    for epoch in range(epochs):
+        output = model(X)
+        loss = F.nll_loss(output[idx_train], Y[idx_train])
+        loss.backward()
+        optimizer.step()
+        if (epoch + 1) % print_every == 0:
+            model.eval()
+            tem_time = time.time()
+            print(' epoch:{}, loss:{:.4f}, time:{:.4f}, accuracy:{}'.format(epoch + 1, loss / X.shape[0],
+                                                                            (tem_time - pre_time) / print_every,
+                                                                            accuracy(output[idx_val], Y[idx_val])))
+            pre_time = tem_time
+            model.train()
+    return model
+
+
+def accuracy(output, labels):
+    preds = output.max(1)[1].type_as(labels)  # 使用type_as(tesnor)将张量转换为给定类型的张量。
+    correct = preds.eq(labels).double()  # 记录等于preds的label eq:equal
+    correct = correct.sum()
+    return correct / len(labels)

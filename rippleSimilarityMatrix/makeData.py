@@ -2,7 +2,7 @@ from pathlib import Path
 import scipy.sparse as sp
 import numpy as np
 
-data_set = 'usa-airports'
+data_set = 'europe-airports'
 
 load_path = Path(__file__).parent.parent / 'rippleDistanceMatrix' / (data_set + '.npz')
 save_path = Path(__file__).parent / (data_set + '.npz')
@@ -17,7 +17,7 @@ if __name__ == '__main__':
     # val_list = np.power(val_list, -1).flatten()
     val_list1 = []
     for val in val_list:
-        val_list1.append(9 - val)
+        val_list1.append(10 - val)
     # val_list[np.isinf(val_list)] = 1
     new_data = sp.coo_matrix((val_list1, (row, col)), shape=data.shape)
     sp.save_npz(save_path, new_data)

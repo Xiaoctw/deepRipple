@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--lr', type=float, default=3e-4,
                     help='The learning rate')
 parser.add_argument('--dataset', type=str, default='europe-airports')
-parser.add_argument('--w', type=float, default=0.2)
+parser.add_argument('--w', type=float, default=0.5)
 parser.add_argument('--ratio', type=int, default=5)
 
 

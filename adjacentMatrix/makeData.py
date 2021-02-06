@@ -2,7 +2,7 @@ from pathlib import Path
 import scipy.sparse as sp
 import numpy as np
 
-data_set = 'usa-airports'
+data_set = 'barbell'
 
 file_path = Path(__file__).parent.parent / 'originalData' / (data_set + '.edgelist')
 save_path = Path(__file__).parent.parent / 'adjacentMatrix' / (data_set + '.npz')
@@ -21,4 +21,5 @@ if __name__ == '__main__':
         data.append(1)
     # print('shape:{}'.format(max_val))
     coo = sp.coo_matrix((data, (rows, cols)), shape=(max_val + 1, max_val + 1))
+    mat1 = coo.todense().__array__()
     sp.save_npz(save_path, coo)
